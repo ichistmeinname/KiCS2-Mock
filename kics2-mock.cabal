@@ -1,0 +1,17 @@
+Name:           kics2-mock
+Version:        0.1
+Description:    A mock of the runtime environment for KiCS2
+License:        OtherLicense
+Author:         Sandra Dylus
+Maintainer:     sad@information.uni-kiel.de
+Build-Type:     Simple
+Cabal-Version:  >= 1.9.2
+
+Executable testMock
+  Main-is:        TestMock.hs
+  Build-Depends: base, ghc, mtl, containers
+  ghc-options:
+    -fprof-auto
+    "-with-rtsopts=-p -s -h"
+  Other-modules:
+      TestMock, Mock, MockPrelude
