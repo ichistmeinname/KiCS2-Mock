@@ -1,5 +1,6 @@
 .cabal-sandbox/
 cabal.sandbox.config
+.curry
 dist/
 *.bib
 *.log
@@ -13,6 +14,5 @@ dist/
 *.o
 *.aux
 *.hp
-*.prof
 .DS_Store
 *~
