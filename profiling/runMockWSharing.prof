@@ -1,0 +1,144 @@
+	Wed Sep 28 14:24 2016 Time and Allocation Profiling Report  (Final)
+
+	   testMock +RTS -p -s -h -p -RTS
+
+	total time  =        6.43 secs   (6426 ticks @ 1000 us, 1 processor)
+	total alloc = 10,171,627,944 bytes  (excludes profiling overheads)
+
+COST CENTRE                   MODULE                    %time %alloc
+
+gets                          Control.Monad.State.Class  24.0    9.4
+onDecisionMap                 Mock                       13.2   13.4
+searchMSearch'.decide         Mock                        8.8   12.6
+setDecisionGetChange.unchain  Mock                        7.2    9.1
+setDecisionGetChange          Mock                        6.0    7.2
+setDecision                   Mock                        5.8    9.9
+nextSupplies.nextNSupplies'   Mock                        3.8    6.6
+lookupDecisionID              Mock                        2.7    2.5
+>>=                           MockPrelude                 2.4    1.3
+lookupDecision                Mock                        2.3    2.0
+searchMSearch'.mChoice.plus   Mock                        2.1    1.5
+searchMSearch'                Mock                        2.0    6.1
+searchMSearch'.mChoice.follow Mock                        1.3    1.6
+match                         MockPrelude                 1.3    1.4
+setDecisionRaw                Mock                        1.2    1.1
+searchMSearch'.mChoice        Mock                        1.2    2.1
+genBool                       Main                        1.2    2.0
+getDecisionRaw                Mock                        1.1    0.7
+modify                        Control.Monad.State.Class   1.0    1.6
+nfChoice                      Mock                        0.7    1.5
+
+
+                                                                                          individual     inherited
+COST CENTRE                                 MODULE                      no.     entries  %time %alloc   %time %alloc
+
+MAIN                                        MAIN                         49           0    0.0    0.0   100.0  100.0
+ main                                       Main                         99           0    0.3    0.0    99.5   99.2
+  showsPrec                                 MockPrelude                 197           1    0.0    0.0     0.0    0.0
+  fold'                                     Main                        103           1    0.0    0.0    92.2   90.1
+   foldValues                               Main                        105           1    0.0    0.0     1.0    0.7
+    d_C_foldr                               MockPrelude                 106     1000002    0.5    0.7     0.9    0.7
+     d_apply                                MockPrelude                 182     2000002    0.2    0.0     0.4    0.0
+      d_OP_amp_amp                          MockPrelude                 183     1000001    0.1    0.0     0.2    0.0
+       trace                                Mock                        184     1000001    0.1    0.0     0.1    0.0
+   runValues                                Main                        104           1    0.0    0.0    91.2   89.3
+    vsToList                                MockPrelude                 180           1    0.0    0.0     0.0    0.0
+    dfsStrategy                             MockPrelude                 152     2000001    1.0    0.9     2.6    2.1
+     |++|                                   MockPrelude                 179     1000000    0.6    0.7     1.2    1.3
+      getValues                             MockPrelude                 187     1000000    0.1    0.0     0.1    0.0
+      d_OP_plus_plus                        MockPrelude                 181     2000000    0.5    0.6     0.5    0.6
+     addVS                                  MockPrelude                 178     1000001    0.3    0.0     0.5    0.0
+      getValues                             MockPrelude                 185     1000001    0.1    0.0     0.1    0.0
+    runMock                                 Mock                        107           1    0.0    0.0    88.6   87.2
+     encapsulatedSearch                     Mock                        108           1    0.0    0.0    88.6   87.2
+      $!!                                   MockPrelude                 116     2000001    0.8    0.0     1.5    1.5
+       encapsulatedSearch.\                 Mock                        172     1000001    0.0    0.0     0.0    0.0
+       nfChoice                             Mock                        122     1000000    0.7    1.5     0.7    1.5
+      searchMSearch                         Mock                        111           1    0.0    0.0    87.1   85.7
+       searchMSearch'                       Mock                        113     2000001    2.0    6.1    86.0   84.5
+        searchMSearch'.mChoice              Mock                        147           0    0.2    0.0     0.7    0.2
+         searchMSearch'.mChoice.plus        Mock                        148           0    0.5    0.2     0.6    0.2
+          trace                             Mock                        149     1000000    0.1    0.0     0.1    0.0
+        match                               MockPrelude                 115     2000001    1.3    1.4    82.8   78.1
+         searchMSearch'.mVal                Mock                        173     1000001    0.5    0.5     0.7    0.8
+          searchNF                          MockPrelude                 175     1000001    0.2    0.3     0.2    0.3
+          trace                             Mock                        174     1000001    0.1    0.0     0.1    0.0
+         searchMSearch'.mChoice             Mock                        124     1000000    1.1    2.1    80.8   75.9
+          searchMSearch'.mChoice.follow     Mock                        143           0    1.2    1.6    15.2   26.4
+           searchMSearch'.decide            Mock                        153     2000000    3.9    9.2    13.2   24.5
+            setDecision                     Mock                        155     2000000    2.5    7.2     9.3   15.3
+             setDecisionGetChange           Mock                        157     2000000    2.9    4.4     6.8    8.0
+              setDecisionGetChange.unchain  Mock                        166           0    1.0    0.5     2.3    1.6
+               getUnique                    Mock                        196      999999    0.2    0.0     0.2    0.0
+               setDecisionRaw               Mock                        167     2000000    1.1    1.1     1.1    1.1
+                modify                      Control.Monad.State.Class   169     2000000    0.0    0.0     0.0    0.0
+                isDefaultDecision           Mock                        168     2000000    0.0    0.0     0.0    0.0
+              getUnique                     Mock                        165     2000000    0.3    0.0     0.3    0.0
+              getDecisionRaw                Mock                        159     2000000    0.5    0.5     1.3    2.0
+               gets                         Control.Monad.State.Class   160     2000000    0.7    1.6     0.7    1.6
+           searchMSearch'.mChoice.plus      Mock                        145     1000000    0.5    0.4     0.7    0.4
+            searchMSearch'.isCovered        Mock                        146     1000000    0.2    0.0     0.2    0.0
+           trace                            Mock                        144     1000000    0.1    0.0     0.1    0.0
+          lookupDecision                    Mock                        126     1000000    0.6    0.7     2.4    3.3
+           lookupDecisionID                 Mock                        128     1000000    0.9    1.6     1.8    2.6
+            getUnique                       Mock                        137     1000000    0.1    0.0     0.1    0.0
+            getDecisionRaw                  Mock                        130     1000000    0.5    0.2     0.8    1.0
+             gets                           Control.Monad.State.Class   131     1000000    0.3    0.8     0.3    0.8
+              >>=                           MockPrelude                 132           1    0.0    0.0     0.0    0.0
+               decisionMap                  Mock                        135           1    0.0    0.0     0.0    0.0
+            >>=                             MockPrelude                 129           1    0.0    0.0     0.0    0.0
+             lookupDecisionID.follow        Mock                        134           1    0.0    0.0     0.0    0.0
+           >>=                              MockPrelude                 127           1    0.0    0.0     0.0    0.0
+          >>=                               MockPrelude                 125    13999997    1.3    0.0    62.1   44.0
+           searchMSearch'.mChoice.follow    Mock                        142     1000000    0.2    0.0    60.8   44.0
+            searchMSearch'.decide           Mock                        154           0    4.9    3.4    59.6   43.2
+             lookupDecision                 Mock                        188           0    1.7    1.3    13.1    5.6
+              lookupDecisionID              Mock                        189           0    1.8    0.9    11.3    4.2
+               lookupDecisionID.follow      Mock                        192      999999    0.8    0.9     0.8    0.9
+               getDecisionRaw               Mock                        190           0    0.0    0.0     8.7    2.4
+                gets                        Control.Monad.State.Class   191           0    8.7    2.4     8.7    2.4
+                 decisionMap                Mock                        193      999999    0.0    0.0     0.0    0.0
+             searchMSearch'.mVal            Mock                        176           0    0.0    0.0     0.4    0.4
+              searchNF                      MockPrelude                 177           0    0.4    0.4     0.4    0.4
+             setDecision                    Mock                        156           0    3.3    2.7    41.2   33.8
+              setDecisionGetChange          Mock                        158           0    3.1    2.8    37.9   31.1
+               setDecisionGetChange.unchain Mock                        163     2000000    6.1    8.7    20.5   23.6
+                setDecisionRaw              Mock                        170           0    0.2    0.0    14.4   14.9
+                 modify                     Control.Monad.State.Class   171           0    1.0    1.6    14.2   14.9
+                  onDecisionMap             Mock                        195      999999   13.2   13.4    13.2   13.4
+               getDecisionRaw               Mock                        161           0    0.0    0.0    14.3    4.7
+                gets                        Control.Monad.State.Class   162           0   14.3    4.7    14.3    4.7
+                 decisionMap                Mock                        164     2000000    0.0    0.0     0.0    0.0
+            searchMSearch'.mChoice.plus     Mock                        150           0    1.1    0.9     1.1    0.9
+        trace                               Mock                        114     2000001    0.5    0.0     0.5    0.0
+       >>=                                  MockPrelude                 112     2000001    1.1    1.3     1.1    1.3
+      trace                                 Mock                        109           1    0.0    0.0     0.0    0.0
+  genBool                                   Main                        101           0    0.7    1.3     7.0    9.2
+   genBool.\                                Main                        121     1000000    0.0    0.0     0.0    0.0
+   genBool.ids                              Main                        117           1    0.7    0.9     6.3    7.9
+    unique                                  Mock                        138     1000000    0.0    0.0     0.0    0.0
+    nextSupplies                            Mock                        118           1    0.0    0.0     5.6    7.0
+     nextSupplies.nextNSupplies'            Mock                        119     1999999    3.8    6.6     5.6    7.0
+      rightSupply                           Mock                        194      999999    0.9    0.3     0.9    0.3
+      leftSupply                            Mock                        139      999999    0.7    0.2     0.7    0.2
+      nextSupplies.nextNSupplies'.halfn     Mock                        120      999999    0.1    0.0     0.1    0.0
+ CAF                                        Mock                         97           0    0.0    0.0     0.0    0.0
+  defaultDecision                           Mock                        141           1    0.0    0.0     0.0    0.0
+  emptyDecisionMap                          Mock                        140           1    0.0    0.0     0.0    0.0
+  mkInteger                                 Mock                        136           1    0.0    0.0     0.0    0.0
+  debug                                     Mock                        110           1    0.0    0.0     0.0    0.0
+  initSupply                                Mock                        102           1    0.0    0.0     0.0    0.0
+ CAF                                        MockPrelude                  96           0    0.0    0.0     0.0    0.0
+  showsPrec                                 MockPrelude                 198           0    0.0    0.0     0.0    0.0
+  emptyVS                                   MockPrelude                 186           1    0.0    0.0     0.0    0.0
+  mplus                                     MockPrelude                 151           1    0.0    0.0     0.0    0.0
+  return                                    MockPrelude                 133           1    0.0    0.0     0.0    0.0
+  choiceCons                                MockPrelude                 123           1    0.0    0.0     0.0    0.0
+ CAF                                        Main                         95           0    0.0    0.0     0.4    0.8
+  main                                      Main                         98           1    0.0    0.0     0.4    0.8
+   genBool                                  Main                        100           1    0.4    0.8     0.4    0.8
+ CAF                                        GHC.Conc.Signal              88           0    0.0    0.0     0.0    0.0
+ CAF                                        GHC.IO.Encoding              82           0    0.0    0.0     0.0    0.0
+ CAF                                        GHC.IO.Encoding.Iconv        80           0    0.0    0.0     0.0    0.0
+ CAF                                        GHC.IO.Handle.FD             72           0    0.0    0.0     0.0    0.0
+ CAF                                        GHC.IO.Handle.Text           70           0    0.0    0.0     0.0    0.0
