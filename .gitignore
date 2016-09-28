@@ -1,4 +1,13 @@
+.cabal-sandbox/
+cabal.sandbox.config
 dist/
+*.bib
+*.log
+*.out
+*.pdf
+*.ptb
+*.run.xml
+*.tex
 *.ps
 *.hi
 *.o
