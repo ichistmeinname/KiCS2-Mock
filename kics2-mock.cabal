@@ -11,7 +11,7 @@ Executable testMock
   Main-is:        TestMock.hs
   Build-Depends: base, ghc, mtl, containers
   ghc-options:
-    -fprof-auto
+    -prof -auto-all
     "-with-rtsopts=-p -s -h"
   Other-modules:
       TestMock, Mock, MockPrelude

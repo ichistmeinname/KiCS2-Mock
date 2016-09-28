@@ -8,8 +8,7 @@ module Mock ( MonadSearch(..), MonadPlus(..), NormalForm(..), NonDet(..)
 import System.IO.Unsafe (unsafePerformIO)
 import Data.IORef (IORef, newIORef, readIORef, modifyIORef)
 import Control.Monad
-import Control.Monad.State.Lazy
--- import Control.Monad.State.Strict
+import Control.Monad.State.Lazy as Lazy
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import qualified Data.Map as Map
 import qualified Debug.Trace as DT
@@ -22,8 +21,8 @@ debug = False
 
 trace str expr = if debug then DT.trace ("\n\n**\ndebug: " ++ str ++ "\n**\n") expr else expr
 
-runMock :: (MonadSearch m, NormalForm a) => a -> m a
-runMock expr = encapsulatedSearch expr 1 emptyCs
+runMock :: (MonadSearch m, NormalForm a) => Bool -> a -> m a
+runMock sharing expr = encapsulatedSearch sharing expr 1 emptyCs
 
 -- ---------------------------------------------------------------------------
 -- Type classes
@@ -88,8 +87,8 @@ class MonadPlus m => MonadSearch m where
   -- svar        = ssum
   -- var   _     = msum
 
-instance MonadSearch m => MonadSearch (StateT a m) where
-  splus cd i mx my  = StateT (\s -> splus cd i (runStateT mx s) (runStateT my s))
+instance MonadSearch m => MonadSearch (Lazy.StateT a m) where
+  splus cd i mx my  = Lazy.StateT (\s -> splus cd i (Lazy.runStateT mx s) (Lazy.runStateT my s))
   -- ssum  cd i mxs    = Lazy.StateT (\s -> ssum cd i (map (flip Lazy.runStateT s) mxs))
   -- szero cd info     = Lazy.StateT (\_ -> szero cd info)
   -- svar  cd i mxs    = Lazy.StateT (\s -> svar cd i (map (flip Lazy.runStateT s) mxs))
@@ -102,8 +101,10 @@ instance MonadSearch m => MonadSearch (StateT a m) where
 -- ---------------------------------------------------------------------------
 
  -- |Collect results of a non-deterministic computation in a monadic structure
-encapsulatedSearch :: (MonadSearch m, NormalForm a) => a -> Cover -> ConstStore -> m a
-encapsulatedSearch x cd store = trace "encapsulatedSearch" $ searchMSearch cd $ ((\y _ _ -> y) $!! x) cd store
+encapsulatedSearch :: (MonadSearch m, NormalForm a) => Bool -> a -> Cover -> ConstStore -> m a
+encapsulatedSearch sharing x cd store =
+  trace "encapsulatedSearch" $ searchMSearch sharing cd $ ((\y _ _ -> y) $!! x) cd store
+
 
 -- ---------------------------------------------------------------------------
 -- Generic search using MonadPlus instances for the result
@@ -119,7 +120,7 @@ onDecisionMap :: (Map.Map Integer Decision -> Map.Map Integer Decision)
               -> DecisionMap -> DecisionMap
 onDecisionMap f (DecisionMap m) = DecisionMap (f m)
 
-instance Monad m => Store (StateT DecisionMap m) where
+instance Monad m => Store (Lazy.StateT DecisionMap m) where
   getDecisionRaw u        = gets
                           $ Map.findWithDefault defaultDecision (mkInteger u)
                           . decisionMap
@@ -128,60 +129,23 @@ instance Monad m => Store (StateT DecisionMap m) where
     | otherwise           = modify $ onDecisionMap $ Map.insert (mkInteger u) c
   unsetDecisionRaw u      = modify $ onDecisionMap $ Map.delete (mkInteger u)
 
-searchMSearch :: (MonadSearch m, NormalForm a) => Cover -> a -> m a
-searchMSearch cd x = evalStateT (searchMSearch' cd return x) emptyDecisionMap
+searchMSearch :: (MonadSearch m, NormalForm a) => Bool -> Cover -> a -> m a
+searchMSearch sharing cd x = Lazy.evalStateT (searchMSearch' sharing cd return x) emptyDecisionMap
 
-searchMSearch' :: (NormalForm a, MonadSearch m, Store m) => Cover -> (a -> m b) -> a -> m b
-searchMSearch' cd cont x = trace "searchM'" $ match mChoice mVal x
+searchMSearch' :: (NormalForm a, MonadSearch m, Store m) => Bool -> Cover -> (a -> m b) -> a -> m b
+searchMSearch' sharing cd cont x = trace "searchM'" $ match mChoice mVal x
   where
-  mVal v        = trace "mVal" $ searchNF (searchMSearch' cd) cont v
+  mVal v        = trace "mVal" $ searchNF (searchMSearch' sharing cd) cont v
 
-  mChoice d i a b = lookupDecision i >>= follow
+  mChoice d i a b = (if sharing then lookupDecision i else return NoDecision) >>= follow
     where
-    follow ChooseLeft  = trace "ChooseLeft" $ searchMSearch' cd cont a
-    follow ChooseRight = trace "ChooseRight" $ searchMSearch' cd cont b
+    follow ChooseLeft  = trace "ChooseLeft" $ searchMSearch' sharing cd cont a
+    follow ChooseRight = trace "ChooseRight" $ searchMSearch' sharing cd cont b
     follow NoDecision  = trace "No decision" $ decide i ChooseLeft a `plus` decide i ChooseRight b
     follow c           = internalError $ "Search.mChoice: Bad decision " ++ show c
     plus = if isCovered d then trace "splus" $ splus d i else trace "mplus" mplus
 
-  -- mFree d i xs = lookupDecisionID i >>= follow
-  --   where
-  --   follow (LazyBind cs,_)  = processLB d i cs xs
-  --   follow (ChooseN c _,j)  = searchMSearch' cd cont (ys !! c)
-  --     where Free _ _ ys = try $ generate (supply j) d
-  --   follow (NoDecision ,j)  = sumF j $
-  --     zipWith3 (\m pm y -> decide i (ChooseN m pm) y) [0..] pns xs
-  --   follow c             = internalError $ "Search.mFree: Bad decision "
-  --                           ++ show c ++ " for " ++ show i
-  --   pns = case i of
-  --     FreeID     pns' _ -> pns'
-  --     NarrowedID pns' _ -> pns'
-  --     ChoiceID        _ -> internalError "Search.mFree.pns: ChoiceID"
-  --   sumF j | isCovered d  = svar d i
-  --          | otherwise    = var (cont (choicesCons d j xs))
-
-  -- mNarrowed d i xs = (DT.trace "mNarrowd\n" $ lookupDecision i) >>= follow
-  --   where
-  --   follow (LazyBind cs)  = processLB d i cs xs
-  --   follow (ChooseN c _)  = searchMSearch' cd cont (xs !! c)
-  --   follow NoDecision     = sumF $
-  --     zipWith3 (\m pm y -> decide i (ChooseN m pm) y) [0..] pns xs
-  --   follow c              = error $ "Search.mNarrowed: Bad decision " ++ show c
-  --   pns = case i of
-  --     FreeID     pns' _ -> pns'
-  --     NarrowedID pns' _ -> pns'
-  --     ChoiceID        _ -> error "Search.mNarrowed.pns: ChoiceID"
-  --   sumF | isCovered d = ssum d i
-  --        | otherwise   = msum
-
-  -- mGuard d cs e
-  --  | isCovered d = constrainMSearch d cs (searchMSearch' cd cont e)
-  --  | otherwise = solve cd cs e >>= maybe (szero d defFailInfo) (searchMSearch' cd cont . snd)
-
-  -- processLB d i cs xs = decide i NoDecision
-  --                       $ guardCons d (StructConstr cs) (choicesCons d i xs)
-
-  decide i c y = setDecision i c >> searchMSearch' cd cont y
+  decide i c y = (if sharing then setDecision i c else return ()) >> searchMSearch' sharing cd cont y
   isCovered d = d < cd
 
 -- --------------------------------
@@ -283,16 +247,6 @@ supply (NarrowedID    _   s) = s
 freeID :: [Int] -> IDSupply -> ID
 freeID = FreeID
 
--- -- |Construct an 'ID' for a binary choice from an 'IDSupply'
--- thisID :: IDSupply -> ID
--- thisID = ChoiceID . unique
-
--- -- |Convert a free or narrowed 'ID' into a narrowed one
--- narrowID :: ID -> ID
--- narrowID (ChoiceID      _) = internalError "ID.narrowID: ChoiceID"
--- narrowID (FreeID      p s) = NarrowedID p s
--- narrowID narrowedID      = narrowedID
-
 -- |Retrieve the left child 'ID' from a free 'ID'
 leftID :: ID -> ID
 leftID  (FreeID      _ s) = freeID    [] (leftSupply s)
@@ -310,10 +264,6 @@ getUnique :: ID -> Unique
 getUnique (ChoiceID          u) = u
 getUnique (FreeID          _ s) = unique s
 getUnique (NarrowedID      _ s) = unique s
-
--- isNarrowed :: ID -> Bool
--- isNarrowed (NarrowedID _ _) = True
--- isNarrowed _                = False
 
 -- -- ---------------------------------------------------------------------------
 -- -- Tracing
@@ -542,64 +492,6 @@ setDecisionRawSupply u c
 
 unsetDecisionRawSupply :: Unique -> IO ()
 unsetDecisionRawSupply = modifyIORef store . Map.delete
-
-
--- data Unique = Unique { unqRef:: IORef Decision, unqKey :: GHC.Unique }
-
--- instance Eq Unique where
---   Unique ref1 _ == Unique ref2 _ = ref1 == ref2
-
--- data IDSupply = IDSupply
---   { unique      :: Unique   -- ^ Decision and unique identifier for this IDSupply
---   , leftSupply  :: IDSupply -- ^ path to the left IDSupply
---   , rightSupply :: IDSupply -- ^ path to the right IDSupply
---   }
-
--- instance Eq IDSupply where
---   s1 == s2 = unique s1 == unique s2
-
--- instance Show IDSupply where
---   show = showUnique . unique
-
--- -- |Retrieve an 'Integer' representation of the unique identifier
--- mkInteger :: Unique -> Integer
--- mkInteger = toInteger . GHC.getKey . unqKey
-
--- showUnique :: Unique -> String
--- showUnique = tail . show . unqKey -- tail to avoid showing of leading 'a'
-
--- -- |Initialize a new 'IDSupply'
--- initSupply :: IO IDSupply
--- initSupply = mkSplitUniqSupply 'a' >>= getPureSupply
-
--- -- |Internal construction of an 'IDSupply' using 'unsafeDupableInterleaveIO'
--- -- to enable a lazy construction of the child 'IDSupply's inside the 'IO'
--- -- monad.
--- -- Without this unsafe function, the construction would loop infinitely.
--- --
--- -- /Note:/ Previously, this was implemented using 'unsafePerformIO', but
--- -- as 'unsafePerformIO' traverse the entire call stack to perform blackholing
--- -- this resulted in a very bad performance.
--- --
--- -- For more information, see
--- -- <http://www.haskell.org/pipermail/glasgow-haskell-users/2011-March/020223.html>
--- getPureSupply :: UniqSupply -> IO IDSupply
--- getPureSupply uniqS = do
---   let (leftS, rightS) = splitUniqSupply uniqS
---   s1 <- unsafeDupableInterleaveIO $ getPureSupply leftS
---   s2 <- unsafeDupableInterleaveIO $ getPureSupply rightS
---   r  <- unsafeDupableInterleaveIO $ newIORef defaultDecision
---   return (IDSupply (Unique r (uniqFromSupply uniqS)) s1 s2)
--- {-# NOINLINE getPureSupply #-}
-
--- getDecisionRawSupply :: Unique -> IO Decision
--- getDecisionRawSupply u = trace "getDecision_Supply" $ readIORef (unqRef u)
-
--- setDecisionRawSupply :: Unique -> Decision -> IO ()
--- setDecisionRawSupply u c = trace "setDecision_Supply" $ writeIORef (unqRef u) c
-
--- unsetDecisionRawSupply :: Unique -> IO ()
--- unsetDecisionRawSupply u = writeIORef (unqRef u) defaultDecision
 
 -- ---------------------------------------------------------------------------
 -- Constraint Store

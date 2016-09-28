@@ -13,7 +13,7 @@ I started my investigation with a very simple example.
 
 
     foldLists = foldr (&&) True (foldr1 (:) (replicate veryLargeNumber True))
-    foldValues = foldValues (&&) True (foldr1 (?) (replicate veryLargeNumber True))
+    foldValues = foldValues (&&) True (set2 foldr1 (?) (replicate veryLargeNumber True))
 
     veryLargeNumber = 1000000000
     -- (?) :: a -> a -> a -- nondetermistic choice between two values
@@ -65,33 +65,33 @@ Profiling:
 
    testMock +RTS -p -s -h -RTS
 
-   total time  =        0.55 secs   (549 ticks @ 1000 us, 1 processor)
+   total time  =        0.55 secs   (549 ticks @ 1000 us, 1 processor)  
    total alloc = 932,623,408 bytes  (excludes profiling overheads)
 
-COST CENTRE                   MODULE      %time %alloc
+|COST CENTRE | MODULE | %time | %alloc |
+|------------|--------|-------|--------|
+|getDecisionRaw               | Mock        | 21.3  | 11.1 |
+|searchMSearch'.decide        | Mock        | 14.8  | 12.7 |
+|onDecisionMap                | Mock        | 13.7  | 11.9 |
+|setDecisionGetChange.unchain | Mock        |  5.1  |  6.7 |
+|setDecisionGetChange         | Mock        |  4.9  |  8.7 |
+|nextSupplies.nextNSupplies'  | Mock        |  4.0  |  6.2 |
+|setDecision                  | Mock        |  3.5  |  7.9 |
+|lookupDecisionID             | Mock        |  3.1  |  3.1 |
+|searchMSearch'               | Mock        |  2.7  |  6.9 |
+|>>=                          | MockPrelude |  2.4  |  1.4 |
+|genBool                      | Main        |  2.2  |  2.2 |
+|searchMSearch'.mChoice       | Mock        |  2.2  |  2.7 |
+|setDecisionRaw               | Mock        |  2.0  |  2.9 |
+|lookupDecision               | Mock        |  2.0  |  2.2 |
+|match                        | MockPrelude |  1.8  |  1.4 |
+|$!!                          | MockPrelude |  1.3  |  0.0 |
+|d_apply                      | MockPrelude |  1.3  |  0.3 |
+|searchMSearch'.mChoice.follow| Mock        |  1.3  |  2.8 |
+|genBool.ids                  | Main        |  1.1  |  0.9 |
+|getUnique                    | Mock        |  1.1  |  0.0 |
+|nfChoice                     | Mock        |  0.5  |  1.6 |
+|lookupDecisionID.follow      | Mock        |  0.2  |  1.0 |
 
-getDecisionRaw                Mock         21.3   11.1
-searchMSearch'.decide         Mock         14.8   12.7
-onDecisionMap                 Mock         13.7   11.9
-setDecisionGetChange.unchain  Mock          5.1    6.7
-setDecisionGetChange          Mock          4.9    8.7
-nextSupplies.nextNSupplies'   Mock          4.0    6.2
-setDecision                   Mock          3.5    7.9
-lookupDecisionID              Mock          3.1    3.1
-searchMSearch'                Mock          2.7    6.9
->>=                           MockPrelude   2.4    1.4
-genBool                       Main          2.2    2.2
-searchMSearch'.mChoice        Mock          2.2    2.7
-setDecisionRaw                Mock          2.0    2.9
-lookupDecision                Mock          2.0    2.2
-match                         MockPrelude   1.8    1.4
-$!!                           MockPrelude   1.3    0.0
-d_apply                       MockPrelude   1.3    0.3
-searchMSearch'.mChoice.follow Mock          1.3    2.8
-genBool.ids                   Main          1.1    0.9
-getUnique                     Mock          1.1    0.0
-nfChoice                      Mock          0.5    1.6
-lookupDecisionID.follow       Mock          0.2    1.0
 
-
-[1]: https://www.informatik.uni-kiel.de/~mh/papers/PPDP09.pdf
+[1]: https://www.informatik.uni-kiel.de/~mh/papers/PPDP09.pdf  

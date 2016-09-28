@@ -3,6 +3,8 @@
 module MockPrelude where
 
 import GHC.Exts (Int (I#), Int#, (==#), (/=#), (<#), (>#), (<=#))
+import Control.Monad (liftM, ap)
+import Control.Applicative (Alternative(..))
 import Mock
 
 -- ---------------------------------------------------------------------------
@@ -109,6 +111,10 @@ instance MonadSearch C_SearchTree where
 instance Functor C_SearchTree where
   fmap = liftM
 
+instance Applicative C_SearchTree where
+  pure = return
+  (<*>) = ap
+  
 instance Monad C_SearchTree where
   return = C_Value
 
@@ -117,6 +123,10 @@ instance Monad C_SearchTree where
 
   Choice_C_SearchTree  cd i x y >>= f
     = Choice_C_SearchTree  cd i  (x >>= f) (y >>= f)
+
+instance Alternative C_SearchTree where
+  empty = mzero
+  (<|>) = mplus
 
 instance MonadPlus C_SearchTree where
   mzero = C_Fail (-1)

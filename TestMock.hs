@@ -17,17 +17,15 @@ boolsSmall = do
                          C_True
                          (Choice_C_Bool 2 (ChoiceID id2) undefined C_True)
 
-runMock' val = dfsStrategy (runMock val)
+-- runList val = vsToList (dfsStrategy (runMockWSharing val))
 
-runList val = vsToList (dfsStrategy (runMock val))
+runValues :: NormalForm a => Bool -> a -> C_Values a
+runValues sharing val = C_Values (vsToList (dfsStrategy (runMock sharing val)))
 
-runValues :: NormalForm a => a -> C_Values a
-runValues val = C_Values (vsToList (dfsStrategy (runMock val)))
+fold' sharing = foldValues d_OP_amp_amp C_True . runValues sharing
 
-fold'    = foldValues d_OP_amp_amp C_True . runValues
-
-isEmpty' :: NormalForm a => a -> Bool
-isEmpty' = isEmpty . runValues
+isEmpty' :: NormalForm a => Bool -> a -> Bool
+isEmpty' sharing = isEmpty . runValues sharing
 
 foldValues :: (NormalForm a, NormalForm b)
            => (a -> b -> b)
@@ -67,4 +65,7 @@ sharingExample = do
   return (Choice_C_Bool 1 (ChoiceID id1) x list)
 
 main :: IO ()
-main = genBool 100000 >>= print . fold'
+main = do
+  arg <- getLine
+  let sharing = read arg
+  genBool 1000000 >>= print . fold' sharing
